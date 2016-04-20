@@ -6,14 +6,33 @@ import {AbstractCqrsEvent}  from '../../../core/abstraction/AbstractCqrsEvent';
 export class FooPongAnsweredEvent extends AbstractCqrsEvent {
 
     /**
+     * Event name
+     * @returns {string}
+     */
+    static get eventName () {
+        return 'foo_pong_answered';
+    }
+
+    /**
+     * Restore event from object
+     * @param {{eventName:string,data:{dt: timestamp, requestID: uuid, answer: string}}} eventData
+     */
+    static restore (eventData) {
+        if (eventData.eventName !== FooPongAnsweredEvent.eventName) {
+            throw new Error(`Expected object of event ${FooPongAnsweredEvent.eventName}, passed ${eventData.eventName}`);
+        }
+        const {requestID, dt, answer} = eventData.data;
+        return new FooPongAnsweredEvent(requestID, dt, answer);
+    }
+
+    /**
      *
-     * @param {timestamp} dt
-     * @param {uuid} aggregateID
      * @param {uuid} requestID
-     * @param {string} forWho
+     * @param {timestamp} dt
+     * @param {string} answer
      */
     constructor (requestID, dt, answer) {
-        super('foo_pong_answered');
+        super(FooPongAnsweredEvent.eventName);
         this._requestID = requestID;
         this._dt = dt;
         this._answer = answer;
@@ -45,7 +64,19 @@ export class FooPongAnsweredEvent extends AbstractCqrsEvent {
     }
 
     /**
-     *
+     * Serialize event data to object
+     * @returns {{dt: timestamp, requestID: uuid, answer: string}}
+     */
+    dataToObject () {
+        return {
+            dt: this.dt,
+            requestID: this.requestID,
+            answer: this.answer
+        }
+    }
+
+    /**
+     * TODO: remove this, because this method implemented in AbstractCqrsEvent
      * @returns {{dt: timestamp, aggregateID: uuid, requestID: uuid, forWho: string}}
      */
     toJSON () {

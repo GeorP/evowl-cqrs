@@ -8,9 +8,19 @@ export class AbstractCqrsCommand {
     /**
      *
      * @param {string} cmd
+     * @param {uuid} uuid
      */
-    constructor (cmd) {
+    constructor (cmd, uuid) {
         this._cmd = cmd;
+        this._uuid = uuid;
+    }
+
+    /**
+     *
+     * @type {uuid}
+     */
+    get uuid () {
+        return this._uuid;
     }
 
     /**
@@ -31,12 +41,13 @@ export class AbstractCqrsCommand {
 
     /**
      * Serialize command to flat object
-     * @returns {{cmd: string, data: Object}}
+     * @returns {{type: string, cmd: string, data: Object}}
      */
     toObject () {
         return {
-            type: this.constructor.name,
+            type: this.constructor.name, //to identify whta type of object it is
             cmd: this.cmd,
+            uuid: this.uuid,
             data: this.data
         }
     }

@@ -1,7 +1,7 @@
 /**
  * Operation receiver. Used to handle operations in RPC model and send answers using RabbitMQ
  */
-export class OperationReceiver {
+export class RPCOperationReceiver {
 
     /**
      *
@@ -16,7 +16,7 @@ export class OperationReceiver {
 
     /**
      * Promise that will be resolved once object ready to receive operations
-     * @type {Promise.<OperationReceiver>}
+     * @type {Promise.<RPCOperationReceiver>}
      */
     get ready () {
         return this._connector.ready.then(() => this);

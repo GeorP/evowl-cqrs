@@ -1,8 +1,8 @@
-import {AbstractEventStoreAdapter} from './AbstractEventStoreAdapter';
 import {NotImplementedError} from '../errors/NotImplementedError';
 
 /**
  * Abstract class to define interface of Aggregate Repository
+ * @interface <AbstractAggregateRepository>
  */
 export class AbstractAggregateRepository {
 
@@ -12,16 +12,17 @@ export class AbstractAggregateRepository {
      */
     constructor (eventStoreAdapter) {
         this._es = eventStoreAdapter;
+
     }
 
     /**
      * Asynchronously loads aggregate from EventStore
      *
-     * @param {AbstractAggregate} aggregate  constructor
+     * @param {AbstractAggregate} aggregateCtor  constructor
      * @param {string} uuid Unique identifier of the needed aggregate
      * @returns {Promise<AbstractAggregate>}
      */
-    getByID (aggregate, uuid) {
+    getByID (aggregateCtor, uuid) {
         throw new NotImplementedError('getByID', 'AggregateRepository');
     }
 
@@ -31,6 +32,6 @@ export class AbstractAggregateRepository {
      * @returns {Promise<empty|Error>}
      */
     save (aggregate) {
-        throw new NotImplementedError('save','AggregateRepository');
+        
     }
 }

@@ -10,8 +10,9 @@ export class TempEventBus extends AbstractEventBus {
 
     constructor () {
         super();
-        this._eventHandlers = [];
+        this._eventHandlersBucket = [];
     }
+    
     /**
      * Push new event to bus
      * @param {AbstractCqrsEvent} event
@@ -20,7 +21,7 @@ export class TempEventBus extends AbstractEventBus {
         if (!(event instanceof AbstractCqrsEvent)) {
             throw new TypeMismatchError('AbstractCqrsEvent', event);
         }
-        this._eventHandlers.filter(handler => handler.match(event))
+        this._eventHandlersBucket.filter(handler => handler.match(event))
                             .map(handler => handler.handle(event));
     }
 
@@ -32,6 +33,6 @@ export class TempEventBus extends AbstractEventBus {
         if (!(eventHandler instanceof AbstractCqrsEventHandler)) {
             throw new TypeMismatchError('AbstractCqrsEventHandler', eventHandler)
         }
-        this._eventHandlers.push(eventHandler);
+        this._eventHandlersBucket.push(eventHandler);
     }
 }

@@ -1,6 +1,7 @@
 export const config = {
     "rabbitMQHost": "amqp://localhost",
     "commandBusExchange": "command-bus-tmp1",
+    "eventBusExchange": "event-bus-tmp1",
 
     "logger": [
         {
@@ -18,4 +19,4 @@ export const config = {
             }
         }
     ]
-}
+};

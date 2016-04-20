@@ -81,8 +81,12 @@ export class LogFormatterConfigurableLine extends AbstractLogFormatter{
                 stack: attachedData.stack
             }
         }
-        if (typeof attachedData === 'object') {
-            attachedData = JSON.stringify(attachedData);
+        if (typeof attachedData === 'object' && attachedData !== null) {
+            if ('toObject' in attachedData) {
+                attachedData = JSON.stringify(attachedData.toObject());
+            } else {
+                attachedData = JSON.stringify(attachedData);
+            }
         }
         return [logLevel, dt, msg, loc, attachedData, tags, '\n'].join(separator);
     }

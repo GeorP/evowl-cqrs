@@ -20,7 +20,7 @@ export class AbstractDenormalizer {
     }
 
     get eventHandlers () {
-        throw new NotImplementedError('getter/eventHandlers', 'AbstractDenormalizer');
+        throw new NotImplementedError('getter/eventHandlersBucket', 'AbstractDenormalizer');
     }
 
 }

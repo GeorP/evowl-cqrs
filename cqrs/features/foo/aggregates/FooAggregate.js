@@ -7,16 +7,44 @@ import {FooPongAnsweredEvent} from './../events/FooPongAnsweredEvent';
  * It can be pinged
  */
 export class FooAggregate extends AbstractAggregate {
-    static create (uuid) {
-        return new FooAggregate(uuid);
+
+    /**
+     * Aggregate entity name
+     * @returns {string}
+     */
+    static get aggregateName () {
+        return 'Foo';
+    }
+
+    /**
+     * Create new instance
+     * @param {uuid} uuid
+     * @param {number} originVersion
+     * @returns {FooAggregate}
+     */
+    static create (uuid, originVersion) {
+        return new FooAggregate(uuid, originVersion);
+    }
+
+    /**
+     * Metainformation about Aggregate
+     * @returns {{type: *, name: string, version: string}}
+     */
+    static get meta () {
+        return {
+            type: FooAggregate.name,
+            name: FooAggregate.aggregateName,
+            version: '1.0'
+        };
     }
 
     /**
      *
      * @param {uuid} uuid
+     * @param {number} originVersion
      */
-    constructor (uuid) {
-        super('foo', uuid);
+    constructor (uuid, originVersion) {
+        super(FooAggregate.aggregateName, uuid, originVersion);
     }
 
     /**

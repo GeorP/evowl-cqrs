@@ -2,6 +2,7 @@ import {NodeConfig} from './NodeConfig';
 import {TypeMismatchError} from './errors/TypeMismatchError';
 import {CommandFactory} from './CommandFactory';
 import {QueryFactory} from './QueryFactory';
+import {EventFactory} from './EventFactory';
 
 /**
  * Is a basic container for some CQRS node, that could contain full list of nodes or just some part of them
@@ -14,7 +15,7 @@ export class Application {
      */
     constructor (config) {
         if (!(config instanceof NodeConfig)) {
-            throw new TypeMismatchError('AbstractAggregateRepository', config);
+            throw new TypeMismatchError('NodeConfig', config);
         }
         this._config = config;
         this.runtime = {
@@ -44,19 +45,30 @@ export class Application {
         const runtime = this.runtime;
         const config = this._config;
 
-        const eventBus = runtime.eventBus = new config.eventBus();
-        runtime.eventStoreAdapter = new config.eventStoreAdapter(eventBus);
-        const aggregateRepository = runtime.aggregateRepository = new config.aggregateRepository(runtime.eventStoreAdapter);
-        const viewRepository = runtime.viewRepository = new config.viewRepository();
-        const rabbitMQConnector = new config.rabbitMQConnector({host: config.rabbitMQHost});
-
-
-        const commandFactory = runtime.commandFactory = new CommandFactory();
+        const commandFactory = runtime.commandFactory = new CommandFactory(this._logger);
         const queryFactory = runtime.queryFactory = new QueryFactory();
+        const eventFactory = runtime.eventFactory = new EventFactory();
+
+        const rabbitMQConnector = new config.rabbitMQConnector({host: config.rabbitMQHost});
+        rabbitMQConnector.connect();
+        const eventBus = runtime.eventBus = new config.eventBus(this._logger, rabbitMQConnector, config.eventBusExchange);
+        runtime.eventStoreAdapter = new config.eventStoreAdapter(this._logger, eventFactory, eventBus);
+        const aggregateRepository = runtime.aggregateRepository =
+            new config.aggregateRepository(
+                this._logger,
+                runtime.eventStoreAdapter
+            );
+
+        const viewRepository = runtime.viewRepository = new config.viewRepository();
+
+
+
+
+
         let commandBus;
         let queryBus;
 
-        this._ready = rabbitMQConnector.connect().then(() => {
+        this._ready = rabbitMQConnector.ready.then(() => {
             commandBus = runtime.commandBus = new config.commandBus(
                 this._logger,
                 rabbitMQConnector,
@@ -72,8 +84,12 @@ export class Application {
                     this._localLogger.info(`Loading feature ${feature.name}`, {version: feature.version}, 'init');
 
                     //commands
-                    feature.commandHandlers.forEach(ch => commandBus.registerCommandHandler(new ch(aggregateRepository)));
+                    feature.commandHandlers.forEach(
+                        ch => commandBus.registerCommandHandler(new ch(this._logger, aggregateRepository))
+                    );
                     feature.commands.forEach(cmd => commandFactory.registerCommand(cmd));
+
+                    feature.events.forEach(event => eventFactory.register(event));
 
                     //queries
                     feature.queryHandlers.forEach(qh => queryBus.register(new qh(viewRepository)));
@@ -81,7 +97,8 @@ export class Application {
 
                     feature.denormalizers.forEach(dn => {
                         runtime.denormalizers[dn.name] = new dn(viewRepository);
-                        runtime.denormalizers[dn.name].eventHandlers.forEach(eh => eventBus.registerEventHandler(eh))
+                        // runtime.denormalizers[dn.name].eventHandlersBucket.forEach(eh => eventBus.registerEventHandler(eh))
+                        eventBus.registerEventHandlers(runtime.denormalizers[dn.name].eventHandlersBucket);
                     });
                 }
             );

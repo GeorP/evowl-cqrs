@@ -1,9 +1,9 @@
-import {AbstractCqrsCommand} from '../../../core/abstraction/AbstractCqrsCommand';
+import {CqrsCommand} from '../../../core/CqrsCommand';
 
 /**
  * Ping command class
  */
-export class PingCommand extends AbstractCqrsCommand {
+export class PingCommand extends CqrsCommand {
 
     /**
      *
@@ -15,21 +15,22 @@ export class PingCommand extends AbstractCqrsCommand {
 
     /**
      * Simple factory that return new instance of the Ping command
+     * @param {uuid} uuid
      * @param {{requestID:string, targetID:uuid, byWho:string}} data
      * @returns {PingCommand}
      */
-    static create (data) {
-        //TODO: rewrite to destructuring assignment (configurate bablejs appropreately)
-        return new PingCommand(data.requestID, data.targetID, data.byWho);
+    static create (uuid, {requestID, targetID, byWho}) {
+        return new PingCommand(uuid, requestID, targetID, byWho);
     }
 
     /**
+     * @param {uuid} uuid
      * @param {uuid} requestID
      * @param {uuid} targetID
      * @param {string} byWho
      */
-    constructor (requestID, targetID, byWho) {
-        super(PingCommand.cmd);
+    constructor (uuid, requestID, targetID, byWho) {
+        super(PingCommand.cmd, uuid);
 
         this._requestID = requestID;
         this._targetID = targetID;

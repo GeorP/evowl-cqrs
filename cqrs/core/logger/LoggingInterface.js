@@ -130,6 +130,19 @@ export class LoggingInterface {
     }
 
     /**
+     * Serialize error to object
+     * @param {Error} error
+     * @returns {{type: string, msg: string, stack: string}}
+     */
+    serializeError (error) {
+       return {
+           type: error.name,
+           msg: error.message,
+           stack: error.stack
+       }
+    }
+
+    /**
      * Get interface that inherits tag and location
      * @param {string} loc
      * @param {Array.<string>|string} tags

@@ -44,6 +44,22 @@ export class RabbitMQChannel {
     }
 
     /**
+     * Publish event to queue
+     * @param {string} pattern
+     * @param {string} data
+     * @param {Object} options
+     * @returns {Promise}
+     * @private
+     */
+    _publish (pattern, data, options) {
+        return this._channel.publish(this.exchange.name,
+            pattern,
+            new Buffer(data),
+            options
+        );
+    }
+
+    /**
      * Add queue to the channel
      * @param {RabbitMQQueue} queue
      * @private
@@ -123,14 +139,9 @@ export class RabbitMQChannel {
     /**
      * Acknowledge message
      * @param msg
-     * @returns {Promise.<RabbitMQChannel>}
      */
     acknowledge (msg) {
-        return this._channel.ack(msg)
-        .then(
-            ok => this,
-            error => { throw error }
-        );
+        return this._channel.ack(msg);
     }
 
     /**
@@ -233,7 +244,15 @@ export class RabbitMQChannel {
     }
 
     /**
-     * Execute operation remotely
+     * Add on close listener
+     * @param {Function} func
+     */
+    onClose (func) {
+        this._channel.on('close', func);
+    }
+
+    /**
+     * Execute operation remotely (RPC call)
      * @param {string} operationName
      * @param {Object} operationData
      * @param {string} correlationId
@@ -241,12 +260,26 @@ export class RabbitMQChannel {
      * @param {{contentType:string}} options
      * @returns {Promise}
      */
-    publish (operationName, operationData, correlationId, replyTo, {contentType = 'application/json'} = {}) {
-        return this._channel.publish(this.exchange.name,
-            operationName,
-            //TODO: Think if we wait for string or some type of Object
-            new Buffer(operationData),
-            { correlationId: correlationId, replyTo: replyTo, contentType: contentType }
+    publishOperation (operationName, operationData, correlationId, replyTo, {contentType = 'application/json'} = {}) {
+        return this._publish(operationName, operationData,
+            {
+                correlationId: correlationId,
+                replyTo: replyTo,
+                contentType: contentType
+            }
+        );
+    }
+
+    /**
+     * Publish event to message bus
+     * @param {string} eventName
+     * @param {string} eventData
+     * @param {{contentType:string}} options
+     * @returns {Promise}
+     */
+    publishEvent (eventName, eventData, {contentType = 'application/json'} = {}) {
+        return this._publish(eventName, eventData,
+            { contentType: contentType }
         );
     }
 

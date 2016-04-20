@@ -1,12 +1,10 @@
 // See documentation: http://www.squaremobius.net/amqp.node/channel_api.html
-const amqp = require('amqplib');
 const uuid = require('node-uuid');
-import {RabbitMQConnector} from './RabbitMQConnector';
 
 /**
  * Operation sender. Provides interface to execute operations remotely using RabbitMQ
  */
-export class OperationSender {
+export class RPCOperationSender {
 
     /**
      *
@@ -20,7 +18,7 @@ export class OperationSender {
 
     /**
      * Promise that will be resolved once object ready to send operations
-     * @returns {Promise.<OperationSender>}
+     * @returns {Promise.<RPCOperationSender>}
      */
     get ready () {
         return this._connector.ready.then(() => this);
@@ -63,7 +61,6 @@ export class OperationSender {
                     // promise will be resolved when subscription approved by server
                     return channel.handleQueueNoAck(responseQueue.name, (msg) => { // this is our handler for operation result
 
-
                         // We'd better check correlation id, details see here:
                         // https://www.rabbitmq.com/tutorials/tutorial-six-javascript.html
                         if (msg.correlationId == correlationId) {
@@ -73,20 +70,20 @@ export class OperationSender {
                                 //TODO: think do we need to react somehow on this
                                 ok => { ; },
                                 //TODO: log error somehow
-                                err => { throw error; }
+                                error => { reject(error) }
                             );
                         }
                     }); //noAck: if true, the broker won't expect an acknowledgement of messages
                     // delivered to this consumer; i.e.,
                     // it will dequeue messages as soon as they've been sent down the wire. Defaults to false
                 },
-                error => { throw error; }
+                error => { reject(error); }
             ).then(
                 result => {
                     //do send message here
-                    result.channel.publish(operationName, operationData, correlationId, responseQueue.name);
+                    result.channel.publishOperation(operationName, operationData, correlationId, responseQueue.name);
                 },
-                error => { throw error }
+                error => { reject(error); }
             );
         });
 

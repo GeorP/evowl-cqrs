@@ -1,24 +1,37 @@
+const uuid = require('node-uuid');
+
 /**
  * Part of application public interface to allow command creation
  */
 export class CommandFactory {
 
-    constructor () {
-        this._commandsDict = {};
+    constructor (logger) {
+        this._logger = logger.getInterface('CommandFactory');
+        this._dict = {};
+    }
+
+    /**
+     * Generate uniq id for the command
+     * @returns {uuid}
+     * @private
+     */
+    _generateID () {
+        return uuid.v4();
     }
 
     /**
      * Create new command object
      * @param {string} cmd
      * @param {object} data
+     * @param {uuid} uuid
      * @returns {AbstractCqrsCommand}
      */
-    create (cmd, data) {
+    create (cmd, data, uuid = this._generateID()) {
         if (!this.isCommand(cmd)) {
             // TODO: write custom error
             throw new Error(`Command ${cmd} not registered in this node`);
         }
-        return this._commandsDict[cmd].create(data);
+        return this._dict[cmd].create(uuid, data);
     }
 
     /**
@@ -27,7 +40,7 @@ export class CommandFactory {
      * @returns {boolean}
      */
     isCommand (cmd) {
-        return this._commandsDict[cmd] ? true : false;
+        return this._dict[cmd] ? true : false;
     }
 
     /**
@@ -35,10 +48,11 @@ export class CommandFactory {
      * @param {AbstractCqrsCommand} commandCtor
      */
     registerCommand (commandCtor) {
-        this._commandsDict[commandCtor.cmd] = commandCtor;
+        this._dict[commandCtor.cmd] = commandCtor;
     }
 
     restore (serializedCmd) {
-        return this.create(serializedCmd.cmd, serializedCmd.data);
+        this._logger.debug('Restoring command', serializedCmd);
+        return this.create(serializedCmd.cmd, serializedCmd.data, serializedCmd.uuid);
     }
 }

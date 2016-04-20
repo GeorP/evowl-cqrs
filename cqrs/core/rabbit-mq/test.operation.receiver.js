@@ -1,5 +1,5 @@
 import {RabbitMQConnector} from './RabbitMQConnector';
-import {OperationReceiver} from './OperationReceiver';
+import {RPCOperationReceiver} from './RPCOperationReceiver';
 
 
 const handler = function (msg) {
@@ -11,7 +11,7 @@ const commandName = 'foo.ping';
 const EXCHANGE = 'test2';
 const connector = new RabbitMQConnector({host: 'amqp://localhost'});
 connector.connect();
-const receiver = new OperationReceiver(connector, EXCHANGE);
+const receiver = new RPCOperationReceiver(connector, EXCHANGE);
 
 receiver.ready
     .then(r => r.registerHandler(commandName, handler))

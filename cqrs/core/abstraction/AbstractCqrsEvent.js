@@ -7,25 +7,61 @@ import {NotImplementedError} from '../errors/NotImplementedError';
 export class AbstractCqrsEvent {
 
     /**
-     *
-     * @param {string} name
+     * Event name
+     * @returns {string}
      */
-    constructor (name) {
-        this._name = name;
+    static get eventName () {
+        throw new NotImplementedError('eventName', 'AbstractCqrsEvent');
+    }
+
+    /**
+     * Restore event from object
+     * @param {{eventName:string,data:Object}} data
+     */
+    static restore (data) {
+        throw new NotImplementedError('restore', 'AbstractCqrsEvent');
+    }
+
+    /**
+     *
+     * @param {string} eventName
+     */
+    constructor (eventName) {
+        this._eventName = eventName;
     }
 
     /**
      *
      * @returns {string}
      */
-    get name () {
-        return this._name;
+    get eventName () {
+        return this._eventName;
     }
 
     /**
-     * serialize event to json object
+     * Serialize event data to object
+     * @returns {Object}
      */
-    toJSON () {
-        throw new NotImplementedError('toJSON', 'AbstractCqrsEvent');
+    dataToObject () {
+        throw new NotImplementedError('dataToObject', 'AbstractCqrsEvent');
+    }
+
+    /**
+     * Serialize event to object
+     * @returns {{eventName:string,data:Object}}
+     */
+    toObject () {
+        return {
+            eventName: this.eventName,
+            data: this.dataToObject()
+        }
+    }
+
+    /**
+     * Serialize event to json object
+     * @returns {string}
+     */
+    toString () {
+        return JSON.stringify(this.toObject());
     }
 }

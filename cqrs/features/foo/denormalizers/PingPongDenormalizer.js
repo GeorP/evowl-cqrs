@@ -1,10 +1,18 @@
 import {AbstractDenormalizer} from '../../../core/abstraction/AbstractDenormalizer';
-import {TempEventHandler} from '../../../core/temp-implementation/TempEventHandler';
 import {FooPingedEvent} from '../events/FooPingedEvent';
 import {FooPongAnsweredEvent} from '../events/FooPongAnsweredEvent';
 import {PingPongView} from '../views/PingPongView';
+import {CqrsEventHandlersBucket} from '../../../core/CqrsEventHandlersBucket';
 
 export class PingPongDenormalizer extends AbstractDenormalizer {
+
+    static get meta () {
+        return {
+            type: 'Denormalizer',
+            name: PingPongDenormalizer.name,
+            version: '1.0'
+        }
+    }
 
     /**
      * Name of the denormalizer
@@ -20,7 +28,7 @@ export class PingPongDenormalizer extends AbstractDenormalizer {
      */
     constructor (viewRepository) {
         super(PingPongDenormalizer.name, viewRepository);
-        this._eventHandlers = [];
+        this._eventHandlersBucket = new CqrsEventHandlersBucket(PingPongDenormalizer.meta.name);
 
         this._initEventHandlers();
     }
@@ -30,15 +38,15 @@ export class PingPongDenormalizer extends AbstractDenormalizer {
      * @private
      */
     _initEventHandlers () {
-        this._eventHandlers.push(new TempEventHandler(
+        this._eventHandlersBucket.addHandler(
             FooPingedEvent,
             event => this.on_Ping(event)
-        ));
+        );
 
-        this._eventHandlers.push(new TempEventHandler(
+        this._eventHandlersBucket.addHandler(
             FooPongAnsweredEvent,
             event => this.on_Pong(event)
-        ));
+        );
     }
 
     /**
@@ -77,7 +85,7 @@ export class PingPongDenormalizer extends AbstractDenormalizer {
      *
      * @returns {Array.<AbstractCqrsEventHandler>}
      */
-    get eventHandlers () {
-        return this._eventHandlers;
+    get eventHandlersBucket () {
+        return this._eventHandlersBucket;
     }
 }

@@ -42,7 +42,7 @@ export class TempAggregateRepository extends AbstractAggregateRepository {
      * @returns {Promise<empty|Error>}
      */
     save (aggregate) {
-
+        
         return this._es.writeEvents(aggregate.uuid, aggregate.version, aggregate.uncommittedEvents);
     }
 }

@@ -1,8 +1,7 @@
 import {AbstractCommandHandler} from '../../../core/abstraction/AbstractCommandHandler'
 import {FooAggregate} from '../aggregates/FooAggregate';
-import {TempCommandExecutionResult} from '../../../core/temp-implementation/TempCommandExecutionResult';
-import {TempCommandExecutionSuccess} from '../../../core/temp-implementation/TempCommandExecutionSuccess';
-import {TempCommandExecutionError} from '../../../core/temp-implementation/TempCommandExecutionError';
+
+import {CommandExecutionResult} from '../../../core/CommandExecutionResult';
 
 /**
  * Command handler of Ping command
@@ -10,10 +9,12 @@ import {TempCommandExecutionError} from '../../../core/temp-implementation/TempC
 export class PingCommandHandler extends AbstractCommandHandler {
 
     /**
+     * @param {Logger} logger
      * @param {AbstractAggregateRepository} aggregateRepository
      */
-    constructor (aggregateRepository) {
+    constructor (logger, aggregateRepository) {
         super(aggregateRepository, 'foo.ping');
+        this._logger = logger.getInterface(PingCommandHandler.name);
     }
 
     /**
@@ -27,7 +28,14 @@ export class PingCommandHandler extends AbstractCommandHandler {
             // TODO: define apropriate error
             throw new Error('Command not supported');
         }
-        return this._ping(command);
+        return this._ping(command).then(
+            result => {
+                return result;
+            },
+            error => {
+                throw error;
+            }
+        );
     }
 
 
@@ -37,36 +45,49 @@ export class PingCommandHandler extends AbstractCommandHandler {
      * @private
      */
     _ping (command) {
+        this._logger.info('Processing ping command', command);
         return this._ar.getByID(FooAggregate, command.targetID).then(
             (// success loading
                 foo => {
+                    this._logger.debug('Foo aggregate loaded', foo);
                     try { //errors can occur during manipulation with aggregate
                         foo.ping(command.requestID, command.byWho);
                     }
                     catch (e) {
+                        this._logger.debug('Error during ping', e);
                         // reject promise with TempCommandExecutionResult and error value
-                        return Promise.reject(new TempCommandExecutionResult(
-                            command,new TempCommandExecutionError(e)
-                        ));
+                        return new CommandExecutionResult(
+                            command, null, e
+                        );
                     }
+                    this._logger.debug('Foo pinged');
                     return this._ar.save(foo).then(
                         (// return instance of TempCommandExecutionResult with success result
-                            result => new TempCommandExecutionResult(
-                                command, new TempCommandExecutionSuccess(result)
-                            )
+                            result => {
+                                this._logger.debug('Foo state saved');
+                                return new CommandExecutionResult(
+                                    command, result
+                                );
+                            }
                         ),
                         (// error during save
-                            error => Promise.reject(new TempCommandExecutionResult(
-                                command,new TempCommandExecutionError(error)
-                            ))
+                            error => {
+                                this._logger.debug('Save Foo aggregate changes failed', error);
+                                return new CommandExecutionResult(
+                                    command, null, error
+                                );
+                            }
                         )
                     );
                 }
             ),
             ( // error during loading aggregate from repository
-                error => Promise.reject(new TempCommandExecutionResult(
-                        command,new TempCommandExecutionError(error)
-                    ))
+                error => {
+                    this._logger.debug('Foo aggregate load failed');
+                    return new CommandExecutionResult(
+                        command, null, new error
+                    );
+                }
             )
         );
     }

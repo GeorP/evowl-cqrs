@@ -15,9 +15,9 @@ export class Feature {
         this._aggregates = [];
         this._commandHandlers = [];
         this._queryHandlers = [];
-        this._commandsDict = [];
+        this._dict = [];
         this._events = [];
-        this._commandsDict = [];
+        this._dict = [];
         this._denormalizers = [];
     }
 
@@ -68,7 +68,7 @@ export class Feature {
      * @param {AbstractCqrsCommand} commandCtor
      */
     addCommand (commandCtor) {
-        this._commandsDict.push(commandCtor);
+        this._dict.push(commandCtor);
         return this;
     }
 
@@ -77,7 +77,7 @@ export class Feature {
      * @returns {Array.<AbstractCqrsCommand>}
      */
     get commands () {
-        return this._commandsDict;
+        return this._dict;
     }
 
     /**
@@ -87,6 +87,14 @@ export class Feature {
     addEvent (eventCtor) {
         this._events.push(eventCtor);
         return this;
+    }
+
+    /**
+     * Return list of registered events
+     * @returns {Array}
+     */
+    get events () {
+        return this._events;
     }
 
     /**
@@ -111,7 +119,7 @@ export class Feature {
      * @param {AbstractQuery} query
      */
     addQuery (query) {
-        this._commandsDict.push(query);
+        this._dict.push(query);
         return this;
     }
 
@@ -120,7 +128,7 @@ export class Feature {
      * @returns {Array.<AbstractQuery>}
      */
     get queries () {
-        return this._commandsDict;
+        return this._dict;
     }
 
     /**

@@ -6,13 +6,33 @@ import {AbstractCqrsEvent}  from '../../../core/abstraction/AbstractCqrsEvent';
 export class FooPingedEvent extends AbstractCqrsEvent {
 
     /**
+     * Event name
+     * @returns {string}
+     */
+    static get eventName () {
+        return 'foo_pinged';
+    }
+
+    /**
+     * Restore event from object
+     * @param {{eventName:string,data:{aggregateID: uuid, requestID: uuid, byWho: string}}} eventData
+     */
+    static restore (eventData) {
+        if (eventData.eventName !== FooPingedEvent.eventName) {
+            throw new Error(`Expected object of event ${FooPingedEvent.eventName}, passed ${eventData.eventName}`);
+        }
+        const {aggregateID, requestID, byWho} = eventData.data;
+        return new FooPingedEvent(aggregateID, requestID, byWho);
+    }
+
+    /**
      *
      * @param {uuid} aggregateID
      * @param {uuid} requestID
      * @param {string} byWho
      */
     constructor (aggregateID, requestID, byWho) {
-        super('foo_pinged');
+        super(FooPingedEvent.eventName);
         this._aggregateID = aggregateID;
         this._requestID = requestID;
         this._byWho = byWho;
@@ -43,7 +63,19 @@ export class FooPingedEvent extends AbstractCqrsEvent {
     }
 
     /**
-     *
+     * Serialize event data to object
+     * @returns {{aggregateID: uuid, requestID: uuid, byWho: string}}
+     */
+    dataToObject () {
+        return {
+            aggregateID: this.aggregateID,
+            requestID: this.requestID,
+            byWho: this.byWho
+        }
+    }
+
+    /**
+     * TODO: remove this, because this method implemented in AbstractCqrsEvent
      * @returns {{aggregateID: uuid, requestID: uuid, byWho: string}}
      */
     toJSON () {

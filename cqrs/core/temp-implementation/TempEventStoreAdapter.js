@@ -62,14 +62,18 @@ export class TempEventStoreAdapter extends AbstractEventStoreAdapter {
             if (!this._store[uuid]) {
                 this._registerNewAggregate(uuid);
             }
-            const aggregateData = this._store[uuid]
-            if (aggregateData.version !== originalVersion) {
-                throw new Error("Aggregate's version mismatch");
-            }
+            const aggregateData = this._store[uuid];
+            // TODO: I've commented this, because we've changed a bit logic about Aggregates
+            // and it now conflicts with AggregateRepository, so it can't properly set originVersion
+            // so I have to disable this verification
+            // But it should be implemented in stable AggregateRepository and EventStore
+            // if (aggregateData.version !== originalVersion) {
+            //     throw new Error("Aggregate's version mismatch");
+            // }
             eventList.forEach((event) => {
                 aggregateData.events.push(event);
                 aggregateData.version++;
-                this._eventBus.push(event);
+                this._eventBus.publish(event);
             });
             resolve(true);
         });

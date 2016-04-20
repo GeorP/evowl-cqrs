@@ -1,7 +1,3 @@
-import {AbstractEventStoreAdapter} from './abstraction/AbstractEventStoreAdapter';
-import {AbstractAggregateRepository} from './abstraction/AbstractAggregateRepository';
-import {AbstractCommandBus} from './abstraction/AbstractCommandBus';
-import {TypeMismatchError} from './errors/TypeMismatchError';
 import {NotImplementedError} from './errors/NotImplementedError';
 
 /**
@@ -20,6 +16,7 @@ export class NodeConfig {
         this._rabbitMQConnector = null;
         this._rabbitMQHost = null;
         this._commandBusExchange = null;
+        this._eventBusExchange = null;
         this._logger = null;
     }
 
@@ -54,6 +51,22 @@ export class NodeConfig {
      */
     get commandBusExchange () {
         return this._commandBusExchange;
+    }
+
+    /**
+     *
+     * @param {string} value
+     */
+    set eventBusExchange (value) {
+        this._eventBusExchange = value;
+    }
+
+    /**
+     *
+     * @returns {string}
+     */
+    get eventBusExchange () {
+        return this._eventBusExchange;
     }
 
     /**

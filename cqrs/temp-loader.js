@@ -4,15 +4,15 @@ import {Application} from './core/Application';
 import {NodeConfig} from './core/NodeConfig';
 
 //Temp implementation
-import {TempEventStoreAdapter} from './core/temp-implementation/TempEventStoreAdapter';
-import {TempAggregateRepository} from './core/temp-implementation/TempAggregateRepository';
 import {TempQueryBus} from './core/temp-implementation/TempQueryBus';
 import {TempViewRepository} from './core/temp-implementation/TempViewRepository';
-import {TempEventBus} from './core/temp-implementation/TempEventBus';
 
 // Stable implementation
-import {RabbitMQConnector} from './core/rabbit-mq-rpc/RabbitMQConnector';
+import {RabbitMQConnector} from './core/rabbit-mq/RabbitMQConnector';
 import {CommandBusRabbitMQRPC as CommandBus} from './core/CommandBusRabbitMQRPC';
+import {EventBusRabbitMQ as EventBus} from './core/EventBusRabbitMQ';
+import {EventStoreAdapterInMemory as EventStoreAdapter} from './core/EventStoreAdapterInMemory';
+import {AggregateRepository} from './core/AggregateRepository';
 import {Logger, LogFactory} from './core/logger/';
 
 import {fooFeature} from './features/foo/';
@@ -42,18 +42,19 @@ nodeConfig.logger = logger;
 
 
 // Use Temp implementations of EventStoreAdapter, AggregateRepository, CommandBus
-nodeConfig.eventStoreAdapter = TempEventStoreAdapter;
-nodeConfig.aggregateRepository = TempAggregateRepository;
+nodeConfig.eventStoreAdapter = EventStoreAdapter;
+nodeConfig.aggregateRepository = AggregateRepository;
 
 //TODO: move it to configuration file or some other configuration system
 nodeConfig.rabbitMQHost = config.rabbitMQHost;
 nodeConfig.commandBusExchange = config.commandBusExchange;
+nodeConfig.eventBusExchange = config.eventBusExchange;
 nodeConfig.rabbitMQConnector = RabbitMQConnector;
 nodeConfig.commandBus = CommandBus;
 
 nodeConfig.viewRepository = TempViewRepository;
 nodeConfig.queryBus = TempQueryBus;
-nodeConfig.eventBus = TempEventBus;
+nodeConfig.eventBus = EventBus;
 nodeConfig.addFeature(fooFeature);
 
 //Instantiate our application
@@ -61,7 +62,11 @@ const app = new Application(nodeConfig);
 app.init().then(() => {
 
     //Hack: push data to store
-    app.runtime.eventStoreAdapter._registerNewAggregate('1');
+    // app.runtime.eventStoreAdapter._registerNewAggregate('1');
+    app.runtime.eventStoreAdapter._createStream(
+        app.runtime.aggregateRepository._getStreamID('Foo', 1)
+    );
+
 
     //Get public interface to work with our CQRS part
     const pi = app.getPublicInterface();
@@ -94,7 +99,7 @@ app.init().then(() => {
                     console.log(result);
                     console.log('\n\n   Result object have some useful properties');
                     console.log('   result.error:', result.error);
-                    console.log('   result.result:', result.result);
+                    console.log('   result.data:', result.data);
                     console.log('\n   Also we can check if it error or success using appropriate properties');
                     console.log('   result.isError:', result.isError);
                     console.log('   result.isSuccess:', result.isSuccess);
@@ -108,7 +113,7 @@ app.init().then(() => {
         ),
         (// error
             error => {
-                console.log('   During execution unexpected errors occured');
+                console.log('3)   During execution unexpected errors occured');
                 console.log(error);
                 console.log(error.error.stack)
             }

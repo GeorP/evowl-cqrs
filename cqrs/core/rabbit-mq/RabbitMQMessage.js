@@ -26,7 +26,7 @@ export class RabbitMQMessage {
     }
 
     /**
-     * @type {Buffer}
+     * @type {string}
      */
     get contentRaw () {
         return this._msg.content;
@@ -51,6 +51,14 @@ export class RabbitMQMessage {
      */
     get isEmpty () {
         return !this._msg;
+    }
+
+    /**
+     *
+     * @type {string}
+     */
+    get pattern () {
+        return this._msg.fields.routingKey;
     }
 
     /**

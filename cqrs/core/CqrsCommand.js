@@ -8,9 +8,10 @@ export class CqrsCommand extends AbstractCqrsCommand {
     /**
      *
      * @param {string} cmd Name of the command
+     * @param {uuid} uuid Unique identifier of the command
      */
-    constructor (cmd) {
-        super(cmd);
+    constructor (cmd, uuid) {
+        super(cmd, uuid);
 
         /**
          * Stores data related to the command
@@ -34,25 +35,5 @@ export class CqrsCommand extends AbstractCqrsCommand {
      */
     get data () {
         return this._data;
-    }
-
-    /**
-     * Serialize command instance to JavaScript Object
-     * @returns {{commandName: string, data: *}}
-     */
-    toObject () {
-        return {
-            type: this.constructor.name,
-            name: this.cmd,
-            data: this.data
-        }
-    }
-
-    /**
-     * Serialize command instance to JSON
-     * @returns {Object}
-     */
-    toString () {
-        return JSON.stringify(this.toObject());
     }
 }

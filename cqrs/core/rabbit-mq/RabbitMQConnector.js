@@ -80,6 +80,7 @@ export class RabbitMQConnector {
         .then(
             ch => {
                 const channel =  new RabbitMQChannel(channelName, ch);
+                channel.onClose(() => this.removeChannel(channel));
                 this._channels.push(channel);
                 return channel;
             }
@@ -93,5 +94,17 @@ export class RabbitMQConnector {
      */
     getChannel (name) {
         return this._channels.find(channel => channel.name === name);
+    }
+
+    /**
+     * Remove channel from saved list
+     * @param channel
+     */
+    removeChannel (channel) {
+        const pos = this._channels.indexOf(channel);
+        if (pos === -1) {
+            return;
+        }
+        this._channel.splice(pos, 1);
     }
 }

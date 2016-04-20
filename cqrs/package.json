@@ -26,7 +26,8 @@
   "devDependencies": {
     "babel-cli": "^6.5.1",
     "babel-plugin-transform-es2015-destructuring": "^6.5.0",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.5.2"
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.5.2",
+    "babel-plugin-transform-es2015-shorthand-properties": "^6.5.0"
   },
   "dependencies": {
     "amqplib": "^0.4.1",
